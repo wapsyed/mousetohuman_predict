@@ -10,9 +10,17 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(janitor)         # clean_names()
   library(tidymodels)      # predict() on the fitted workflows
-  library(clusterProfiler) # GSEA()
   library(plotly)          # ggplotly()
 })
+
+# clusterProfiler (used for the GSEA) lives on Bioconductor. Give a clear
+# message if it is missing, instead of an opaque library() error.
+if (!requireNamespace("clusterProfiler", quietly = TRUE)) {
+  stop("The 'clusterProfiler' package is not installed.\n",
+       "Run source('install.R') first, or install it with:\n",
+       "  BiocManager::install('clusterProfiler')")
+}
+suppressPackageStartupMessages(library(clusterProfiler)) # GSEA()
 
 # --- Plot theme --------------------------------------------------------------
 theme_vaxgo <- function() {

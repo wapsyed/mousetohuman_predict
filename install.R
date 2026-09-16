@@ -1,6 +1,26 @@
 # R packages needed by RunYourAnalysis_MouseToHuman.Rmd
+#
+# This file is executed by Binder (and can be run locally with source("install.R")).
+
+# --- CRAN packages -----------------------------------------------------------
 install.packages(c("here", "tidyverse", "janitor", "tidymodels", "plotly"))
 
-# GSEA (clusterProfiler) comes from Bioconductor
-install.packages("BiocManager")
-BiocManager::install("clusterProfiler", ask = FALSE, update = FALSE)
+# --- Bioconductor packages ---------------------------------------------------
+# clusterProfiler (used for the GSEA) lives on Bioconductor.
+if (!requireNamespace("BiocManager", quietly = TRUE)) {
+  install.packages("BiocManager")
+}
+
+# Pin the Bioconductor release that matches R 4.5.x (Bioc 3.21) and install
+# clusterProfiler together with its dependencies.
+BiocManager::install(
+  "clusterProfiler",
+  ask = FALSE,
+  update = FALSE,
+  version = "3.21"
+)
+
+# Fail the build early (instead of at library() time) if it did not install.
+if (!requireNamespace("clusterProfiler", quietly = TRUE)) {
+  stop("clusterProfiler failed to install - check the build log.")
+}

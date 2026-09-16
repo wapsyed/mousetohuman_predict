@@ -2,6 +2,10 @@ libcurl4-openssl-dev
 libssl-dev
 libxml2-dev
 libglpk-dev
+libgmp-dev
+zlib1g-dev
+libbz2-dev
+liblzma-dev
 libfontconfig1-dev
 libharfbuzz-dev
 libfribidi-dev

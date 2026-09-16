@@ -9,7 +9,7 @@ output: html_document
 # The trimmed required.R loads only the packages the notebook needs
 # (here, tidyverse, janitor, tidymodels, clusterProfiler, plotly).
 library(here)
-source(here("scripts_notebooks", "required.R"))
+source(here("notebook", "required.R"))
 ```
 
 # Load the trained models
@@ -22,9 +22,9 @@ conditions. Here we apply them to a new (or the same) mouse experiment.
 #   Shared    = Random Forest
 #   Rank      = Random Forest
 #   Direction = Random Forest
-model_shared    <- readRDS(here("Modelling", "Models", "rf_model_shared.rds"))
-model_rank      <- readRDS(here("Modelling", "Models", "rf_model_rank.rds"))
-model_direction <- readRDS(here("Modelling", "Models", "rf_model_direction.rds"))
+model_shared    <- readRDS(here("notebook", "rf_model_shared.rds"))
+model_rank      <- readRDS(here("notebook", "rf_model_rank.rds"))
+model_direction <- readRDS(here("notebook", "rf_model_direction.rds"))
 ```
 
 # Prepare features table
@@ -35,22 +35,22 @@ ave_expr, t, p_value, adj_p_val, b, se, sd, inverse_se, organism, and condition.
 
 ```{r}
 # Gene expression data (mouse experiment; example: S. aureus, timepoint 12)
-dge_input <- readRDS(here("Run your analysis here", "example_dge_result.rds"))
+dge_input <- readRDS(here("notebook", "example_dge_result.rds"))
 
 # Protein identity
-alignments_human2mouse_all <- readRDS(file = here("tables", "alignments_human2mouse_all.rds"))
+alignments_human2mouse_all <- readRDS(file = here("notebook", "alignments_human2mouse_all.rds"))
 
 # Distance
-human_mouse_cds_distance <- readRDS(file = here("tables", "human_mouse_cds_distance.rds"))
+human_mouse_cds_distance <- readRDS(file = here("notebook", "human_mouse_cds_distance.rds"))
 
 # Transcription factors
-gene_tf_shared_unique <- readRDS(file = here("tables", "gene_tf_shared_unique.rds"))
+gene_tf_shared_unique <- readRDS(file = here("notebook", "gene_tf_shared_unique.rds"))
 
 # CREs
-cres_type_homology_comparison_wide <- readRDS(file = here("tables", "cres_type_homology_comparison_wide.rds"))
+cres_type_homology_comparison_wide <- readRDS(file = here("notebook", "cres_type_homology_comparison_wide.rds"))
 
 # BTMs annotation
-btm_annotation_genes <- read_csv(here("tables", "btm_annotation_genes.csv")) %>%
+btm_annotation_genes <- read_csv(here("notebook", "btm_annotation_genes.csv")) %>%
   select(hgnc_symbol = symbol, process, group, subgroup) %>%
   distinct()
 ```
