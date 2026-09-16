@@ -3,6 +3,7 @@ libssl-dev
 libxml2-dev
 libglpk-dev
 libgmp-dev
+libuv1-dev
 zlib1g-dev
 libbz2-dev
 liblzma-dev

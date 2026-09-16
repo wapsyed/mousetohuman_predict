@@ -11,13 +11,13 @@ if (!requireNamespace("BiocManager", quietly = TRUE)) {
   install.packages("BiocManager")
 }
 
-# Pin the Bioconductor release that matches R 4.5.x (Bioc 3.21) and install
+# Pin the Bioconductor release that matches R 4.5.3 (Bioc 3.22) and install
 # clusterProfiler together with its dependencies.
 BiocManager::install(
   "clusterProfiler",
   ask = FALSE,
   update = FALSE,
-  version = "3.21"
+  version = "3.22"
 )
 
 # Fail the build early (instead of at library() time) if it did not install.
