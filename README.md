@@ -78,14 +78,22 @@ Each gene is scored by a model trained without its condition (out-of-fold):
 ## Models
 
 The models were trained on mouse-to-human transfer across infection and injury
-conditions using leave-one-pathogen-out cross-validation. A random forest was
-the best algorithm for every task.
+conditions using leave-one-pathogen-out cross-validation. This notebook uses a
+**random forest** for all three tasks:
 
 | File | Task |
 |:-----|:-----|
 | `notebook/rf_model_shared.rds` | Shared vs Mouse-only LEG classification |
 | `notebook/rf_model_rank.rds` | Human absolute rank regression |
 | `notebook/rf_model_direction.rds` | Directional concordance classification |
+
+> **Model-selection note.** In the companion atlas the neural network is now
+> selected for shared-LEG classification by ROC-AUC (0.569 vs 0.552 for the
+> random forest), while the random forest retains the higher PR-AUC (0.788 vs
+> 0.777). The difference is within run-to-run noise, so this notebook keeps the
+> random forest for `score_shared` for stability and consistency with the rank
+> and direction models. The neural-network model is also shipped
+> (`notebook/nn_model_shared.rds`) for users who prefer it.
 
 ## Citation
 
