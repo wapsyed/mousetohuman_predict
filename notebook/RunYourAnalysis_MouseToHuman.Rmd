@@ -225,7 +225,8 @@ score_sharedlegs_plot = predictions %>%
   ggplot() +
   aes(x = score_shared,
       y = rank_mouse,
-      fill = score_shared) +
+      fill = score_shared,
+      text = hgnc_symbol) +
   geom_point(shape = 21, size = 2, alpha = 0.5, stroke = 0) +
   theme_vaxgo() +
   scale_fill_gradient2(low = "white", high = "blue") +
@@ -233,13 +234,13 @@ score_sharedlegs_plot = predictions %>%
        y = "Absolute rank (mouse)",
        title = "Shared score")
 
-score_sharedlegs_plot %>% ggplotly()
+score_sharedlegs_plot %>% ggplotly(tooltip = c("text", "x", "y", "fill"))
 
 
 # score_rank: predicted human absolute rank
 score_rank_plot = predictions %>%
   ggplot() +
-  aes(x = score_rank, y = rank_mouse, fill = score_rank) +
+  aes(x = score_rank, y = rank_mouse, fill = score_rank, text = hgnc_symbol) +
   geom_point(shape = 21, size = 2, alpha = 0.5, stroke = 0) +
   scale_fill_gradient2(low = "white", high = "blue") +
   theme_vaxgo() +
@@ -247,13 +248,13 @@ score_rank_plot = predictions %>%
        y = "Absolute rank (mouse)",
        title = "Rank score")
 
-score_rank_plot %>% ggplotly()
+score_rank_plot %>% ggplotly(tooltip = c("text", "x", "y", "fill"))
 
 # score_direction: probability of concordant direction (same sign in both species)
 score_direction_plot =
 predictions %>%
   ggplot() +
-  aes(x = score_direction, y = rank_mouse, fill = score_direction) +
+  aes(x = score_direction, y = rank_mouse, fill = score_direction, text = hgnc_symbol) +
   geom_point(shape = 21, size = 2, alpha = 0.5, stroke = 0) +
   theme_vaxgo() +
   scale_fill_gradient2(low = "white", high = "blue") +
@@ -262,12 +263,12 @@ predictions %>%
        title = "Direction score")
 
 score_direction_plot %>%
-  ggplotly()
+  ggplotly(tooltip = c("text", "x", "y", "fill"))
 
 # score_translational: combined score (high rank AND concordant direction)
 score_translational_plot = predictions %>%
   ggplot() +
-  aes(x = score_translational, y = rank_mouse, fill = score_translational) +
+  aes(x = score_translational, y = rank_mouse, fill = score_translational, text = hgnc_symbol) +
   geom_point(shape = 21, size = 2,  alpha = 0.5, stroke = 0) +
   scale_fill_gradient2(low = "white", high = "blue") +
   theme_vaxgo() +
@@ -276,7 +277,7 @@ score_translational_plot = predictions %>%
        title = "Translational score")
 
 #Make it interactive
-  ggplotly(score_translational_plot)
+  ggplotly(score_translational_plot, tooltip = c("text", "x", "y", "fill"))
 ```
 
 # Select priority genes with a user-defined cutoff

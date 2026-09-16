@@ -10,6 +10,7 @@ suppressPackageStartupMessages({
   library(tidyverse)
   library(janitor)         # clean_names()
   library(tidymodels)      # predict() on the fitted workflows
+  library(ranger)          # engine used by the saved random-forest models
   library(plotly)          # ggplotly()
 })
 

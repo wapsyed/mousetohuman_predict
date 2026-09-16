@@ -3,7 +3,7 @@
 # This file is executed by Binder (and can be run locally with source("install.R")).
 
 # --- CRAN packages -----------------------------------------------------------
-install.packages(c("here", "tidyverse", "janitor", "tidymodels", "plotly"))
+install.packages(c("here", "tidyverse", "janitor", "tidymodels", "plotly", "ranger"))
 
 # --- Bioconductor packages ---------------------------------------------------
 # clusterProfiler (used for the GSEA) lives on Bioconductor.
