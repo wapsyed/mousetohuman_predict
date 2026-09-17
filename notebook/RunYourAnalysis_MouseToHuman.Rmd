@@ -9,7 +9,6 @@ output: html_document
 # The trimmed required.R loads only the packages the notebook needs
 # (here, tidyverse, janitor, tidymodels, clusterProfiler, plotly).
 #Install clusterProfiler (once)
-BiocManager::install("clusterProfiler")
 library(here)
 source(here("notebook", "required.R"))
 ```
