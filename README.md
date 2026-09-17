@@ -30,10 +30,13 @@ environment is defined by `runtime.txt`, `install.R` and `apt.txt`.
 ```r
 # 1. Clone the repository
 #    git clone https://github.com/wapsyed/mousetohuman_predict.git
-# 2. Install the packages (tidyverse, tidymodels, clusterProfiler, ...)
-source("install.R")
-# 3. Open and knit the notebook
+# 2. Open and knit the notebook:
 #    notebook/RunYourAnalysis_MouseToHuman.Rmd
+#
+#    The notebook sources notebook/required.R, which automatically installs any
+#    missing package (tidyverse, tidymodels, clusterProfiler, ...) on first run.
+#    To install them ahead of time instead, run:
+source("install.R")
 ```
 
 ## Use your own data

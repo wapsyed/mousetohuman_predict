@@ -1,10 +1,37 @@
 # =============================================================================
-# required.R - minimal helpers for the mouse-to-human prediction notebook.
-# Contains ONLY what the notebook needs: package loading, theme_vaxgo() and
-# autoGSEA(). (The full analysis pipeline uses scripts_notebooks/required.R in
-# the main animals_vax_atlas repository.)
+# required.R - packages + helpers for the mouse-to-human prediction notebook.
+# Installs any missing package automatically (CRAN + Bioconductor), loads them,
+# and defines theme_vaxgo() and autoGSEA(). Works locally and on Binder.
+# (The full analysis pipeline uses scripts_notebooks/required.R in the main
+# animals_vax_atlas repository.)
 # =============================================================================
 
+required_cran <- c("here", "tidyverse", "janitor", "tidymodels", "ranger", "plotly")
+required_bioc <- c("clusterProfiler")
+
+# CRAN mirror fallback (avoids an interactive prompt when none is set)
+if (is.null(getOption("repos")) || is.na(getOption("repos")["CRAN"]) ||
+    getOption("repos")["CRAN"] == "@CRAN@") {
+  options(repos = c(CRAN = "https://cloud.r-project.org"))
+}
+
+# --- Install anything missing (CRAN) -----------------------------------------
+missing_cran <- required_cran[!vapply(required_cran, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing_cran) > 0) {
+  message("Installing missing CRAN packages: ", paste(missing_cran, collapse = ", "))
+  install.packages(missing_cran)
+}
+
+# --- Install anything missing (Bioconductor) ---------------------------------
+# BiocManager picks the Bioconductor release that matches the running R version.
+if (!requireNamespace("BiocManager", quietly = TRUE)) install.packages("BiocManager")
+missing_bioc <- required_bioc[!vapply(required_bioc, requireNamespace, logical(1), quietly = TRUE)]
+if (length(missing_bioc) > 0) {
+  message("Installing missing Bioconductor packages: ", paste(missing_bioc, collapse = ", "))
+  BiocManager::install(missing_bioc, ask = FALSE, update = FALSE)
+}
+
+# --- Load --------------------------------------------------------------------
 suppressPackageStartupMessages({
   library(here)
   library(tidyverse)
@@ -12,16 +39,8 @@ suppressPackageStartupMessages({
   library(tidymodels)      # predict() on the fitted workflows
   library(ranger)          # engine used by the saved random-forest models
   library(plotly)          # ggplotly()
+  library(clusterProfiler) # GSEA()
 })
-
-# clusterProfiler (used for the GSEA) lives on Bioconductor. Give a clear
-# message if it is missing, instead of an opaque library() error.
-if (!requireNamespace("clusterProfiler", quietly = TRUE)) {
-  stop("The 'clusterProfiler' package is not installed.\n",
-       "Run source('install.R') first, or install it with:\n",
-       "  BiocManager::install('clusterProfiler')")
-}
-suppressPackageStartupMessages(library(clusterProfiler)) # GSEA()
 
 # --- Plot theme --------------------------------------------------------------
 theme_vaxgo <- function() {
