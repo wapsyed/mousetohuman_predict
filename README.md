@@ -78,22 +78,21 @@ Each gene is scored by a model trained without its condition (out-of-fold):
 ## Models
 
 The models were trained on mouse-to-human transfer across infection and injury
-conditions using leave-one-pathogen-out cross-validation. This notebook uses a
-**random forest** for all three tasks:
+conditions using leave-one-condition-out cross-validation. This notebook uses the
+**best-performing model per task**:
 
 | File | Task |
 |:-----|:-----|
-| `notebook/rf_model_shared.rds` | Shared vs Mouse-only LEG classification |
-| `notebook/rf_model_rank.rds` | Human absolute rank regression |
-| `notebook/rf_model_direction.rds` | Directional concordance classification |
+| `notebook/lasso_model_shared.rds` | Shared vs Mouse-only LEG classification (Lasso) |
+| `notebook/rf_model_rank.rds` | Human absolute rank regression (random forest) |
+| `notebook/rf_model_direction.rds` | Directional concordance classification (random forest) |
 
-> **Model-selection note.** In the companion atlas the neural network is now
-> selected for shared-LEG classification by ROC-AUC (0.569 vs 0.552 for the
-> random forest), while the random forest retains the higher PR-AUC (0.788 vs
-> 0.777). The difference is within run-to-run noise, so this notebook keeps the
-> random forest for `score_shared` for stability and consistency with the rank
-> and direction models. The neural-network model is also shipped
-> (`notebook/nn_model_shared.rds`) for users who prefer it.
+> **Model-selection note.** For shared-LEG classification the Lasso achieved the
+> highest out-of-fold ROC-AUC (0.617 predictive / 0.627 explanatory), marginally
+> above the neural network (0.615 / 0.603), logistic regression (0.601 / 0.611)
+> and random forest (0.572 / 0.622), so it is used here for `score_shared`. The
+> random forest remains best for rank transfer and direction. The alternative
+> models (`rf_model_shared.rds`, `nn_model_shared.rds`) are also shipped.
 
 ## Citation
 
