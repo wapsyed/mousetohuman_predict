@@ -518,6 +518,10 @@ process_genes <- gsea_results %>%
   unlist() %>%
   unique()
 
+# --- Shared score vs mouse rank for the LEGs of the selected process ---------
+process_scores <- predictions %>%
+  filter(hgnc_symbol %in% process_genes)
+
 # --- Feature heatmap of the LEGs of the selected process ---------------------
 # z-scores are computed within the process/module genes (not across all genes)
 process_scores_mat = process_scores %>%
@@ -543,11 +547,7 @@ process_features_heatmap = feature_heatmap(process_scores, process_scores_mat) %
          title = paste0("Process: ", selected_process))
 
 
-# --- Shared score vs mouse rank for the LEGs of the selected process ---------
-process_scores <- predictions %>%
-  filter(hgnc_symbol %in% process_genes)
-
-  process_score_plot <- process_scores %>%
+process_score_plot <- process_scores %>%
     ggplot() +
     aes(x = score_shared, y = rank_mouse, fill = score_shared,
         text = paste0(hgnc_symbol,

@@ -6,7 +6,7 @@
 # animals_vax_atlas repository.)
 # =============================================================================
 
-required_cran <- c("here", "tidyverse", "janitor", "tidymodels", "ranger", "plotly", "ggrepel", "patchwork")
+required_cran <- c("here", "tidyverse", "janitor", "tidymodels", "ranger", "glmnet", "plotly", "ggrepel", "patchwork")
 required_bioc <- c("clusterProfiler")
 
 # CRAN mirror fallback (avoids an interactive prompt when none is set)
@@ -38,6 +38,9 @@ suppressPackageStartupMessages({
   library(janitor)         # clean_names()
   library(tidymodels)      # predict() on the fitted workflows
   library(ranger)          # engine used by the saved random-forest models
+  library(glmnet)          # engine used by the saved Lasso model (score_shared)
+  library(patchwork)       # plot_layout() / wrap_plots()
+  library(ggrepel)         # geom_text_repel()
   library(plotly)          # ggplotly()
   library(clusterProfiler) # GSEA()
 })
