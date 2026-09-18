@@ -1,6 +1,9 @@
 ---
 title: "RunYourAnalysis_MouseToHuman"
 output: html_document
+editor_options: 
+  markdown: 
+    wrap: 72
 ---
 
 # Setup
@@ -15,8 +18,9 @@ source(here("notebook", "required.R"))
 
 # Load the trained models
 
-The models were trained on mouse-to-human transfer across infection and injury
-conditions. Here we apply them to a new (or the same) mouse experiment.
+The models were trained on mouse-to-human transfer across infection and
+injury conditions. Here we apply them to a new (or the same) mouse
+experiment.
 
 ```{r}
 # Model choice: the Lasso is the best-performing model for shared-LEG
@@ -30,9 +34,10 @@ model_direction <- readRDS(here("notebook", "rf_model_direction.rds"))
 
 # Prepare features table
 
-Please ensure that your input is a table containing the following columns:
-pathogen, treatment, timepoint, hgnc_symbol, mean_l2fc, ci_lower, ci_upper,
-ave_expr, t, p_value, adj_p_val, b, se, sd, inverse_se, organism, and condition.
+Please ensure that your input is a table containing the following
+columns: pathogen, treatment, timepoint, hgnc_symbol, mean_l2fc,
+ci_lower, ci_upper, ave_expr, t, p_value, adj_p_val, b, se, sd,
+inverse_se, organism, and condition.
 
 ```{r}
 # Gene expression data (mouse experiment; example: S. aureus, timepoint 12)
@@ -102,8 +107,8 @@ human_mouse_gene_annotation_wide <- human_mouse_cds_distance %>%
 
 # GSEA (leading-edge genes)
 
-Rank genes with a composite metric (log2FC x -log(adj_p_val)) and run GSEA
-against the BTM gene sets.
+Rank genes with a composite metric (log2FC x -log(adj_p_val)) and run
+GSEA against the BTM gene sets.
 
 ```{r message=FALSE, warning=FALSE}
 # Prepare BTM term-to-gene mapping for GSEA
@@ -160,8 +165,8 @@ legs %>%
 
 # Compute the model features
 
-The models expect mouse-derived features. Here we rename the columns and compute
-the absolute rank, the BTM-only rank and the direction sign.
+The models expect mouse-derived features. Here we rename the columns and
+compute the absolute rank, the BTM-only rank and the direction sign.
 
 ```{r}
 model_input <- dge_input %>%
@@ -235,6 +240,21 @@ heat_map <- c(
   "CTCF match"            = "pct_match_ctcf_dELS_CTCF-bound"
 )
 
+features_order<- c(
+  "Log2FC (mouse)",
+  "Absolute rank (mouse)",
+  "1/SE",
+  "Protein identity",
+  "Kimura",
+  "nTotal TFs",
+  "%Shared TFs",
+  "nTotal cCREs",
+  "%Match Type (PLS)" ,
+  "%Match Type (pELS)",
+  "%Match Type (dELS)",
+  "CTCF match"
+)
+
 build_heat_mat <- function(df) {
   df %>%
     distinct(hgnc_symbol, .keep_all = TRUE) %>%
@@ -246,7 +266,7 @@ build_heat_mat <- function(df) {
 
 # Rows = genes, columns = features. z-scores are computed relative to `baseline_mat`
 # (all genes) so the colours are comparable across different gene selections.
-feature_heatmap <- function(genes_df, baseline_mat, title, z_label = "z-score (all genes)") {
+feature_heatmap <- function(genes_df, baseline_mat) {
   base_mean <- colMeans(baseline_mat, na.rm = TRUE)
   base_sd   <- apply(baseline_mat, 2, sd, na.rm = TRUE)
   heat_dat  <- build_heat_mat(genes_df)
@@ -260,17 +280,7 @@ feature_heatmap <- function(genes_df, baseline_mat, title, z_label = "z-score (a
     pivot_longer(-hgnc_symbol, names_to = "feature", values_to = "value") %>%
     mutate(z = (value - base_mean[feature]) / base_sd[feature],
            hgnc_symbol = factor(hgnc_symbol, levels = gene_levels),
-           feature = factor(feature, levels = feat_levels)) %>%
-    ggplot() +
-    aes(x = feature, y = hgnc_symbol, fill = z,
-        text = paste0(hgnc_symbol, "\n", feature, ": ", round(value, 2))) +
-    geom_tile(color = "white", linewidth = 0.3) +
-    scale_fill_gradientn(colours = c("#4DBBD5FF", "white", "#4361ee"),
-                         limits = c(-2.5, 2.5), oob = scales::squish) +
-    theme_vaxgo() +
-    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 7),
-          axis.text.y = element_text(size = 7)) +
-    labs(x = "", y = "", fill = z_label, title = title)
+           feature = factor(feature, levels = feat_levels))
 }
 
 # Score heatmap: rows = genes, columns = the four model scores (z-scored over ALL genes).
@@ -303,81 +313,68 @@ score_heatmap <- function(genes_df, baseline_df, title) {
     pivot_longer(-hgnc_symbol, names_to = "score", values_to = "value") %>%
     mutate(z = (value - base_mean[score]) / base_sd[score],
            hgnc_symbol = factor(hgnc_symbol, levels = gene_levels),
-           score = factor(score, levels = colnames(heat_dat))) %>%
-    ggplot() +
-    aes(x = score, y = hgnc_symbol, fill = z,
-        text = paste0(hgnc_symbol, "\n", score, ": ", round(value, 3))) +
-    geom_tile(color = "white", linewidth = 0.3) +
-    scale_fill_gradientn(colours = c("#4DBBD5FF", "white", "#4361ee"),
-                         limits = c(-2.5, 2.5), oob = scales::squish) +
-    theme_vaxgo() +
-    theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 8),
-          axis.text.y = element_text(size = 7)) +
-    labs(x = "", y = "", fill = "z-score (all genes)", title = title)
+           score = factor(score, levels = colnames(heat_dat)))
 }
 ```
 
 # Visualise the scores
 
-```{r fig.height=3, fig.width=3}
-# score_shared: probability of being a shared (mouse + human) leading-edge gene
-score_sharedlegs_plot = predictions %>%
-  ggplot() +
-  aes(x = score_shared,
-      y = rank_mouse,
-      fill = score_shared,
-      text = hgnc_symbol) +
-  geom_point(shape = 21, size = 2, alpha = 0.5, stroke = 0) +
-  theme_vaxgo() +
-  scale_fill_gradient2(low = "white", high = "blue") +
-  labs(x = "score_shared (probability)",
-       y = "Absolute rank (mouse)",
-       title = "Shared score")
-
-score_sharedlegs_plot %>% ggplotly(tooltip = c("text", "x", "y", "fill"))
-
-
+```{r fig.height=4, fig.width=12}
 # score_rank: predicted human absolute rank
 score_rank_plot = predictions %>%
   ggplot() +
-  aes(x = score_rank, y = rank_mouse, fill = score_rank, text = hgnc_symbol) +
-  geom_point(shape = 21, size = 2, alpha = 0.5, stroke = 0) +
-  scale_fill_gradient2(low = "white", high = "blue") +
+  aes(x = score_rank, y = rank_mouse, text = hgnc_symbol) +
+  geom_point(shape = 21, size = 2,  
+             alpha = 0.5, stroke = 0.2,
+             fill = "#4DBBD5FF",
+             color = "black") +
   theme_vaxgo() +
-  labs(x = "score_rank (predicted human rank)",
+  theme(legend.position = "top") +
+  labs(x = "Score (Rank)",
        y = "Absolute rank (mouse)",
        title = "Rank score")
-
-score_rank_plot %>% ggplotly(tooltip = c("text", "x", "y", "fill"))
 
 # score_direction: probability of concordant direction (same sign in both species)
 score_direction_plot =
 predictions %>%
   ggplot() +
-  aes(x = score_direction, y = rank_mouse, fill = score_direction, text = hgnc_symbol) +
-  geom_point(shape = 21, size = 2, alpha = 0.5, stroke = 0) +
+  aes(x = score_direction, y = rank_mouse, text = hgnc_symbol) +
+  geom_point(shape = 21, size = 2,  
+             alpha = 0.5, stroke = 0.2,
+             fill = "#4DBBD5FF",
+             color = "black") +
   theme_vaxgo() +
-  scale_fill_gradient2(low = "white", high = "blue") +
-  labs(x = "score_direction (probability of concordance)",
+  theme(legend.position = "top") +
+  labs(x = "Score (Direction)",
        y = "Absolute rank (mouse)",
        title = "Direction score")
-
-score_direction_plot %>%
-  ggplotly(tooltip = c("text", "x", "y", "fill"))
 
 # score_translational: combined score (high rank AND concordant direction)
 score_translational_plot = predictions %>%
   ggplot() +
-  aes(x = score_translational, y = rank_mouse, fill = score_translational, text = hgnc_symbol) +
-  geom_point(shape = 21, size = 2,  alpha = 0.5, stroke = 0) +
-  scale_fill_gradient2(low = "white", high = "blue") +
+  aes(x = score_translational, y = rank_mouse, text = hgnc_symbol) +
+  geom_point(shape = 21, size = 2,  
+             alpha = 0.5, stroke = 0.2,
+             fill = "#4DBBD5FF",
+             color = "black") +
   theme_vaxgo() +
-  labs(x = "score_translational",
+  theme(legend.position = "top") +
+  labs(x = "Score (Translational)",
        y = "Absolute rank (mouse)",
        title = "Translational score")
 
+#Static visualization
+score_rank_plot + score_direction_plot + score_translational_plot +
+  plot_layout(axes = "collect") +
+  plot_annotation(theme = theme(legend.position = "top"))
+```
+
+Make it interactive
+```{r fig.height=3, fig.width=3}
 #Make it interactive
-  ggplotly(score_translational_plot, tooltip = c("text", "x", "y", "fill"))
+score_rank_plot %>% ggplotly(tooltip = c("text", "x", "y", "fill"))
+score_direction_plot %>%ggplotly(tooltip = c("text", "x", "y", "fill"))
+score_translational_plot %>% ggplotly(tooltip = c("text", "x", "y", "fill"))
 ```
 
 # Select priority genes with a user-defined cutoff
@@ -394,11 +391,83 @@ priority_genes <- predictions %>%
 priority_genes
 ```
 
+## Gene heatmaps
+
+```{r fig.height=5, fig.width=12}
+
+# Genes shown in the gene-level heatmaps: top-N by translational score.
+# (The score table has one row per gene and condition, so we keep one row per gene.)
+n_heat_genes <- 25
+
+heat_genes <- predictions %>%
+  distinct(hgnc_symbol, .keep_all = TRUE) %>%
+  slice_max(score_translational, n = n_heat_genes)
+
+# Rows = genes, columns = the four model scores (z-scored over ALL genes)
+
+selected_genes_scores_plots = heat_genes %>% 
+    ggplot() +
+    aes(x = score_direction,
+        y = score_rank, 
+        fill = score_translational,
+        size = score_translational,
+        label = hgnc_symbol) +
+    geom_point( color = "black", pch = 21) +
+    scale_fill_gradientn(colours = c("white", "#4361ee")) +
+    theme_vaxgo() +
+    theme(axis.text.x = element_text(angle = 0, hjust = 0.5, size = 10),
+          axis.text.y = element_text(size = 10),
+          legend.position = "top") +
+    labs(x = "Score Direction", 
+         y = "Score Rank", 
+         fill = "Score Translational",
+         size = "Score Translational") +
+    geom_text_repel(
+    aes(label = hgnc_symbol),
+    size = 3,
+    color = "black",              
+    fill = alpha("white", 0.6),    
+    label.r = unit(0.15, "lines"), 
+    max.overlaps = 100,  
+    direction = "both",    
+    # hjust = 0,                 
+    box.padding = 0.5, 
+    point.padding = 0.3
+  )+
+  scale_x_continuous(limits = c(NA, 1.01)) 
+
+selected_genes_scores_plots %>% ggplotly()
+
+# Rows = genes, columns = the biological features (z-scored over ALL genes)
+
+selected_genes_features_heatmap = feature_heatmap(heat_genes, build_heat_mat(predictions)) %>%
+  mutate(feature = fct_relevel(feature, features_order) %>% fct_rev()) %>%  
+    ggplot() +
+    aes(x =hgnc_symbol , y = feature, fill = z,
+        text = paste0(hgnc_symbol, "\n", feature, ": ", round(value, 2))) +
+    geom_tile(color = "white", linewidth = 0.3) +
+    scale_fill_gradientn(colours = c("#4DBBD5FF", "white", "#4361ee"),
+                         limits = c(-2.5, 2.5), oob = scales::squish) +
+    theme_vaxgo() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+          axis.text.y = element_text(size = 10),
+          legend.position = "top") +
+    labs(x = "", y = "", 
+         fill = "Z-score, all genes", 
+         title = "Selected genes (features)")
+
+selected_genes_features_heatmap +
+selected_genes_scores_plots +
+  plot_annotation(theme = theme(legend.position = "right"),
+                  title = "Selected genes")
+
+```
+
 # Heatmaps
 
 ## Enriched processes (NES)
 
-```{r fig.height=20, fig.width=10}
+```{r fig.height=20, fig.width=5}
 # padj cutoff used to keep processes in the heatmap
 padj_filter <- 0.25
 
@@ -407,7 +476,7 @@ process_nes <- gsea_results %>%
 
 if (nrow(process_nes) > 0) {
   process_heatmap <- process_nes %>%
-    mutate(process = fct_reorder(process, nes, .fun = function(x) max(abs(x)))) %>%
+    mutate(process = fct_reorder(process, nes)) %>%
     ggplot() +
     aes(x = condition, y = process, fill = nes) +
     geom_tile(color = "white", linewidth = 0.3) +
@@ -423,43 +492,10 @@ if (nrow(process_nes) > 0) {
 }
 ```
 
-## Gene heatmaps
-
-```{r}
-# Genes shown in the gene-level heatmaps: top-N by translational score.
-# (The score table has one row per gene and condition, so we keep one row per gene.)
-n_heat_genes <- 50
-
-heat_genes <- predictions %>%
-  distinct(hgnc_symbol, .keep_all = TRUE) %>%
-  slice_max(score_translational, n = n_heat_genes)
-```
-
-```{r fig.height=8, fig.width=6}
-# Rows = genes, columns = the four model scores (z-scored over ALL genes)
-if (nrow(heat_genes) > 1) {
-  ggplotly(score_heatmap(heat_genes, predictions, "Selected genes (scores)"),
-           tooltip = "text")
-} else {
-  message("Fewer than 2 genes selected; increase `n_heat_genes`.")
-}
-```
-
-```{r fig.height=8, fig.width=10}
-# Rows = genes, columns = the biological features (z-scored over ALL genes)
-if (nrow(heat_genes) > 1) {
-  ggplotly(feature_heatmap(heat_genes, build_heat_mat(predictions),
-                           "Selected genes (features)"),
-           tooltip = "text")
-} else {
-  message("Fewer than 2 genes selected; increase `n_heat_genes`.")
-}
-```
-
 # Selected process
 
-Set `selected_process` to one of the enriched process names printed below, then
-re-knit the document.
+Set `selected_process` to one of the enriched process names printed
+below, then re-knit the document.
 
 ```{r}
 # Enriched processes available to choose from (copy one into `selected_process`)
@@ -470,9 +506,9 @@ gsea_results %>%
   pull(process)
 ```
 
-```{r}
+```{r fig.height=6, fig.width=12}
 # --- Choose a process --------------------------------------------------------
-selected_process <- "T cell activation (I)"
+selected_process <- "T cell activation and signaling"
 
 # Leading-edge genes (LEGs) of the selected process
 process_genes <- gsea_results %>%
@@ -481,14 +517,36 @@ process_genes <- gsea_results %>%
   strsplit("/") %>%
   unlist() %>%
   unique()
-```
 
-```{r fig.height=4, fig.width=6}
+# --- Feature heatmap of the LEGs of the selected process ---------------------
+# z-scores are computed within the process/module genes (not across all genes)
+process_scores_mat = process_scores %>%
+    distinct(hgnc_symbol, .keep_all = TRUE) %>%
+    select(hgnc_symbol,all_of(unname(heat_map))) %>%
+    setNames(c("hgnc_symbol", names(heat_map))) %>%
+    column_to_rownames("hgnc_symbol") %>%
+    as.matrix() 
+
+process_features_heatmap = feature_heatmap(process_scores, process_scores_mat) %>% 
+  ggplot() +
+    aes(x = feature, y = hgnc_symbol, fill = z,
+        text = paste0(hgnc_symbol, "\n", feature, ": ", round(value, 2))) +
+    geom_tile(color = "white", linewidth = 0.3) +
+    scale_fill_gradientn(colours = c("#4DBBD5FF", "white", "#4361ee"),
+                         limits = c(-2.5, 2.5), oob = scales::squish) +
+    theme_vaxgo() +
+    theme(axis.text.x = element_text(angle = 45, hjust = 1, size = 10),
+          axis.text.y = element_text(size = 10),
+          legend.position = "top") +
+    labs(x = "", y = "", 
+         fill = "Z-score, process genes", 
+         title = paste0("Process: ", selected_process))
+
+
 # --- Shared score vs mouse rank for the LEGs of the selected process ---------
 process_scores <- predictions %>%
   filter(hgnc_symbol %in% process_genes)
 
-if (nrow(process_scores) > 0) {
   process_score_plot <- process_scores %>%
     ggplot() +
     aes(x = score_shared, y = rank_mouse, fill = score_shared,
@@ -496,26 +554,28 @@ if (nrow(process_scores) > 0) {
                       "\nscore_shared: ", round(score_shared, 2),
                       "\nrank_mouse: ", round(rank_mouse, 1))) +
     geom_point(shape = 21, size = 2, colour = "black", stroke = 0.3, alpha = 0.85) +
+  geom_text_repel(aes(label = hgnc_symbol)) +
     scale_fill_gradient(low = "white", high = "#4DBBD5FF") +
     theme_vaxgo() +
-    labs(x = "score_shared", y = "Absolute rank (mouse)",
+    theme(legend.position = "right") +
+    labs(x = "Score (Shared)", 
+         y = "Absolute rank (mouse)",
+         fill = "Score (Shared)",
          title = paste0("Shared score - ", selected_process))
-  ggplotly(process_score_plot, tooltip = "text") %>%
-    layout(margin = list(l = 60, r = 15, b = 55, t = 40))
-} else {
-  message("No predicted genes found for process: ", selected_process)
-}
-```
 
-```{r fig.height=6, fig.width=9}
-# --- Feature heatmap of the LEGs of the selected process ---------------------
-# z-scores are computed within the process/module genes (not across all genes)
-if (nrow(process_scores) > 1) {
-  ggplotly(feature_heatmap(process_scores, build_heat_mat(process_scores),
-                           paste0("Process: ", selected_process),
-                           z_label = "z-score (process genes)"),
-           tooltip = "text")
-} else {
-  message("Fewer than 2 genes for the selected process.")
-}
+
+
+#Plot all
+process_features_heatmap|process_score_plot 
+
+
+#Interactive
+process_score_plot %>% 
+ggplotly(tooltip = "text") %>%
+    layout(margin = list(l = 60, r = 15, b = 55, t = 40))
+
+process_features_heatmap %>% 
+  ggplotly(tooltip = "text") %>%
+    layout(margin = list(l = 60, r = 15, b = 55, t = 40))
+
 ```

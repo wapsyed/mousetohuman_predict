@@ -6,7 +6,7 @@
 # animals_vax_atlas repository.)
 # =============================================================================
 
-required_cran <- c("here", "tidyverse", "janitor", "tidymodels", "ranger", "plotly")
+required_cran <- c("here", "tidyverse", "janitor", "tidymodels", "ranger", "plotly", "ggrepel", "patchwork")
 required_bioc <- c("clusterProfiler")
 
 # CRAN mirror fallback (avoids an interactive prompt when none is set)
