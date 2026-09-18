@@ -4,7 +4,7 @@ Apply the mouse-to-human translatability models to your own murine blood
 transcriptomic dataset.
 
 This repository is a **standalone companion** to
-[`animals_vax_atlas`](https://github.com/wapsyed/animals_vax_atlas). Everything
+[`mousetohuman_multilayer`](https://github.com/wapsyed/mousetohuman_multilayer). Everything
 needed to run the prediction notebook lives in the **`notebook/`** folder:
 
 - `notebook/RunYourAnalysis_MouseToHuman.Rmd` — the step-by-step notebook.
@@ -12,7 +12,9 @@ needed to run the prediction notebook lives in the **`notebook/`** folder:
 - `notebook/example_dge_result.rds` — an example mouse DGE table (*S. aureus*).
 - `notebook/*.rds`, `notebook/btm_annotation_genes.csv` — the annotation layers
   used as model features.
-- `notebook/rf_model_*.rds` — the trained random-forest models (best per task).
+- `notebook/lasso_model_shared.rds`, `notebook/rf_model_rank.rds`,
+  `notebook/rf_model_direction.rds` — the best-performing model per task
+  (Lasso for shared-LEG classification; random forest for rank and direction).
 
 ## Run it
 
@@ -101,5 +103,5 @@ conditions using leave-one-condition-out cross-validation. This notebook uses th
 
 > Prates-Syed WA, Lira AA, Cortes N, Silva JDQ, Hamaguchi B, Carvalho E,
 > Castillo-Chávez A, Durães-Carvalho R, Cabral-Marques O, Sabino EC, Krieger JE,
-> Hagan T, Cabral-Miranda G. *From Mice to Humans: Functional Modules Improve the
-> Translatability of Transcriptomic Responses.* Genes and Immunity (under review).
+> Hagan T, Cabral-Miranda G. *From mice to humans: A multi-omic predictive
+> framework for translational immunology.* Genes and Immunity (under review).
